@@ -2,11 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:streamr/constants.dart';
 import 'package:streamr/model/movie_model.dart';
 import 'package:streamr/model/search_category.dart';
 import 'package:streamr/widgets/movie_tile.dart';
 
 import '../api/api.dart';
+import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -22,6 +24,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final Api _api = Api(); // Create an instance of the Api class
   List<Movie> _movies = []; // List to store fetched movies
   String _selectedCategory = SearchCategory.topRated; // Default category
+  String? _backgroundImageUrl;
 
   @override
   void initState() {
@@ -49,6 +52,9 @@ class _SearchScreenState extends State<SearchScreen> {
       }
       setState(() {
         _movies = movies; // Update the movies list
+        if (movies.isNotEmpty) {
+          _backgroundImageUrl = movies[0].posterPath!;
+        }
       });
     } catch (e) {
       print('Error fetching movies: $e');
@@ -85,10 +91,12 @@ class _SearchScreenState extends State<SearchScreen> {
         borderRadius: BorderRadius.circular(
           10.0,
         ),
-        image: const DecorationImage(
-          image: NetworkImage(
-            "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b70af2b5-d696-4bf5-b0d9-4cfbfc5b8bc4/dh26tou-3826978e-3d9e-42d4-a1b2-c8476cab668b.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2I3MGFmMmI1LWQ2OTYtNGJmNS1iMGQ5LTRjZmJmYzViOGJjNFwvZGgyNnRvdS0zODI2OTc4ZS0zZDllLTQyZDQtYTFiMi1jODQ3NmNhYjY2OGIuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.4MBhS_mAVBSdET8n9DkdFtgbAHBRfShEsFYc3wFGP0A",
-          ),
+        image: DecorationImage(
+          image: _backgroundImageUrl != null
+              ? NetworkImage(AppConstants.baseUrl + _backgroundImageUrl!)
+              : const NetworkImage(
+                  "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b70af2b5-d696-4bf5-b0d9-4cfbfc5b8bc4/dh26tou-3826978e-3d9e-42d4-a1b2-c8476cab668b.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2I3MGFmMmI1LWQ2OTYtNGJmNS1iMGQ5LTRjZmJmYzViOGJjNFwvZGgyNnRvdS0zODI2OTc4ZS0zZDllLTQyZDQtYTFiMi1jODQ3NmNhYjY2OGIuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.4MBhS_mAVBSdET8n9DkdFtgbAHBRfShEsFYc3wFGP0A",
+                ),
           fit: BoxFit.cover,
         ),
       ),
@@ -120,7 +128,12 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               IconButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  );
                 },
                 icon: const Icon(
                   Icons.arrow_back,
@@ -237,15 +250,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
         ),
-        DropdownMenuItem(
-          value: SearchCategory.none,
-          child: Text(
-            SearchCategory.none,
-            style: GoogleFonts.montserrat(
-              color: Colors.white,
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -261,7 +265,12 @@ class _SearchScreenState extends State<SearchScreen> {
               horizontal: 0,
             ),
             child: GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  setState(() {
+                    _backgroundImageUrl = AppConstants.baseUrl +
+                        _movies[index].posterPath!; // Update the background
+                  });
+                },
                 child: MovieTile(
                     height: _deviceHeight * 0.20,
                     width: _deviceWidth * 0.85,
