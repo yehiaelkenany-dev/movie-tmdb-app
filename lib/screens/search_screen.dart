@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/model/movie_model.dart';
 import 'package:streamr/model/search_category.dart';
+import 'package:streamr/widgets/movie_tile.dart';
+
+import '../api/api.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -16,6 +19,42 @@ class _SearchScreenState extends State<SearchScreen> {
   late double _deviceHeight;
   late double _deviceWidth;
   final _searchTextFieldController = TextEditingController();
+  final Api _api = Api(); // Create an instance of the Api class
+  List<Movie> _movies = []; // List to store fetched movies
+  String _selectedCategory = SearchCategory.topRated; // Default category
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMovies(_selectedCategory); // Fetch movies when the screen initializes
+  }
+
+  // Method to fetch movies based on the selected category
+  Future<void> _fetchMovies(String category) async {
+    try {
+      List<Movie> movies;
+      switch (category) {
+        case SearchCategory.topRated:
+          movies = await _api.getTopRatedMovies();
+          break;
+        case SearchCategory.upcoming:
+          movies = await _api.getUpcomingMovies();
+          break;
+        case SearchCategory.trending:
+          movies = await _api.getTrendingMovies();
+          break;
+        default:
+          movies = [];
+          break;
+      }
+      setState(() {
+        _movies = movies; // Update the movies list
+      });
+    } catch (e) {
+      print('Error fetching movies: $e');
+      // Handle the error (e.g., show a snackbar or dialog)
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
     _deviceWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       body: Container(
         height: _deviceHeight,
@@ -68,14 +108,30 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _foregroundWidgets() {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, _deviceHeight * 0.02, 0, 0),
-      width: _deviceWidth * 0.88,
+      padding: EdgeInsets.fromLTRB(
+          _deviceWidth * 0.025, _deviceHeight * 0.02, _deviceWidth * 0.025, 0),
+      width: _deviceWidth,
       child: Column(
         mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _topBarWidget(),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.black,
+                ),
+              ),
+              Expanded(
+                child: _topBarWidget(),
+              ),
+            ],
+          ),
           Container(
             height: _deviceHeight * 0.83,
             padding: EdgeInsets.symmetric(vertical: _deviceHeight * 0.01),
@@ -108,19 +164,19 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _searchFieldWidget() {
-    const _border = InputBorder.none;
+    const border = InputBorder.none;
     return Container(
       width: _deviceWidth * 0.50,
       height: _deviceHeight * 0.05,
       child: TextField(
         controller: _searchTextFieldController,
-        onSubmitted: (_input) {},
+        onSubmitted: (input) {},
         style: GoogleFonts.montserrat(
           color: Colors.white,
         ),
         decoration: InputDecoration(
-            focusedBorder: _border,
-            border: _border,
+            focusedBorder: border,
+            border: border,
             prefixIcon: const Icon(
               Icons.search,
               color: Colors.white24,
@@ -134,9 +190,9 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _categorySelectionWidget() {
-    return DropdownButton(
+    return DropdownButton<String>(
       dropdownColor: Colors.black38,
-      value: SearchCategory.topRated,
+      value: _selectedCategory, // Use the selected category string
       icon: const Icon(
         Icons.menu,
         color: Colors.white24,
@@ -145,7 +201,14 @@ class _SearchScreenState extends State<SearchScreen> {
         height: 1,
         color: Colors.white24,
       ),
-      onChanged: (_value) {},
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          setState(() {
+            _selectedCategory = newValue; // Update the selected category
+          });
+          _fetchMovies(newValue); // Fetch movies for the new category
+        }
+      },
       items: [
         DropdownMenuItem(
           value: SearchCategory.topRated,
@@ -182,14 +245,13 @@ class _SearchScreenState extends State<SearchScreen> {
               color: Colors.white,
             ),
           ),
-        )
+        ),
       ],
     );
   }
 
   Widget _moviesListViewWidget() {
-    final List<Movie> _movies = [];
-    if (_movies.length != 0) {
+    if (_movies.isNotEmpty) {
       return ListView.builder(
         itemCount: _movies.length,
         itemBuilder: (context, index) {
@@ -199,14 +261,16 @@ class _SearchScreenState extends State<SearchScreen> {
               horizontal: 0,
             ),
             child: GestureDetector(
-              onTap: () {},
-              child: Text(_movies[index].title!),
-            ),
+                onTap: () {},
+                child: MovieTile(
+                    height: _deviceHeight * 0.20,
+                    width: _deviceWidth * 0.85,
+                    movie: _movies[index])),
           );
         },
       );
     } else {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           backgroundColor: Colors.white,
         ),
