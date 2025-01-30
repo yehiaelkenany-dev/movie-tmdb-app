@@ -46,4 +46,19 @@ class Api {
       throw Exception('Failed to fetch Top Rated Movies');
     }
   }
+
+  Future<List<Movie>> searchMovies(String query) async {
+    final response = await http.get(Uri.parse(
+        '${AppConstants.searchURL}?api_key=${AppConstants.apiKey}&query=$query'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Movie> movies = (data['results'] as List)
+          .map((movieData) => Movie.fromMap(movieData))
+          .toList();
+      return movies;
+    } else {
+      throw Exception('Failed to search movies');
+    }
+  }
 }

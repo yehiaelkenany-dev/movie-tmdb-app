@@ -62,6 +62,22 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  Future<void> _searchMovies(String query) async {
+    try {
+      // Call the API to search movies
+      List<Movie> movies = await _api.searchMovies(query);
+      setState(() {
+        _movies = movies; // Update the list of movies with search results
+        if (movies.isNotEmpty) {
+          _backgroundImageUrl = movies[0].posterPath!; // Update background
+        }
+      });
+    } catch (e) {
+      print('Error searching movies: $e');
+      // Handle error (e.g., show a Snackbar or dialog)
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _deviceHeight = MediaQuery.of(context).size.height;
@@ -183,7 +199,11 @@ class _SearchScreenState extends State<SearchScreen> {
       height: _deviceHeight * 0.05,
       child: TextField(
         controller: _searchTextFieldController,
-        onSubmitted: (input) {},
+        onSubmitted: (input) {
+          if (input.isNotEmpty) {
+            _searchMovies(input);
+          }
+        },
         style: GoogleFonts.montserrat(
           color: Colors.white,
         ),
