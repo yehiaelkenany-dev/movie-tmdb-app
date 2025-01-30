@@ -22,7 +22,7 @@ class MovieTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 3, child: _moviePosterWidget(movie.posterPath!)),
+          Expanded(flex: 3, child: _moviePosterWidget(movie.posterPath)),
           const SizedBox(width: 8),
           Expanded(flex: 7, child: _movieInfoWidget()),
         ],
@@ -30,18 +30,41 @@ class MovieTile extends StatelessWidget {
     );
   }
 
-  Widget _moviePosterWidget(String _imageUrl) {
-    final String fullImageUrl = AppConstants.baseUrl + _imageUrl;
-    return Container(
-      height: height,
-      width: width * 0.33,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(fullImageUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
+  // Widget _moviePosterWidget(String _imageUrl) {
+  //   final String fullImageUrl = AppConstants.baseUrl + _imageUrl;
+  //   return Container(
+  //     height: height,
+  //     width: width * 0.33,
+  //     decoration: BoxDecoration(
+  //       image: DecorationImage(
+  //         image: NetworkImage(fullImageUrl),
+  //         fit: BoxFit.cover,
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _moviePosterWidget(String? _imageUrl) {
+    final String? fullImageUrl =
+        _imageUrl != null ? AppConstants.baseUrl + _imageUrl : null;
+    return fullImageUrl != null
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              fullImageUrl,
+              height: height,
+              width: width * 0.33,
+              fit: BoxFit.cover,
+            ),
+          )
+        : Container(
+            height: height,
+            width: width * 0.33,
+            color: Colors.grey[800],
+            child: const Center(
+              child: Icon(Icons.broken_image, color: Colors.white),
+            ),
+          );
   }
 
   Widget _movieInfoWidget() {
@@ -60,13 +83,16 @@ class MovieTile extends StatelessWidget {
             children: [
               Container(
                 width: width * 0.56,
-                child: Text(
-                  movie.title!,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w400,
+                child: Tooltip(
+                  message: movie.title!,
+                  child: Text(
+                    movie.title!,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
