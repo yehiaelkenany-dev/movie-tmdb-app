@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:streamr/bloc/home_bloc.dart';
-import 'package:streamr/bloc/home_event.dart';
+
 import 'package:streamr/screens/home_screen.dart';
+
+import 'bloc/home/home_bloc.dart';
+import 'bloc/home/home_event.dart';
 
 void main() {
   runApp(
