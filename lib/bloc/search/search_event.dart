@@ -22,3 +22,9 @@ class SearchMovies extends SearchEvent {
   @override
   List<Object?> get props => [query];
 }
+
+class UpdateBackgroundImage extends SearchEvent {
+  final String imageUrl;
+
+  UpdateBackgroundImage(this.imageUrl);
+}

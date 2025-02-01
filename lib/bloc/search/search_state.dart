@@ -18,6 +18,13 @@ class SearchLoaded extends SearchState {
 
   @override
   List<Object?> get props => [movies, backgroundImage];
+
+  SearchLoaded copyWith({List<Movie>? movies, String? backgroundImage}) {
+    return SearchLoaded(
+      movies: movies ?? this.movies,
+      backgroundImage: backgroundImage ?? this.backgroundImage,
+    );
+  }
 }
 
 class SearchError extends SearchState {

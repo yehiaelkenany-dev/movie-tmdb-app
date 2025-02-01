@@ -10,6 +10,15 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc(this._api) : super(SearchInitial()) {
     on<FetchMoviesByCategory>(_onFetchMoviesByCategory);
     on<SearchMovies>(_onSearchMovies);
+    on<UpdateBackgroundImage>(_onUpdateBackgroundImage);
+  }
+
+  void _onUpdateBackgroundImage(
+      UpdateBackgroundImage event, Emitter<SearchState> emit) {
+    if (state is SearchLoaded) {
+      final currentState = state as SearchLoaded;
+      emit(currentState.copyWith(backgroundImage: event.imageUrl));
+    }
   }
 
   void _onFetchMoviesByCategory(
