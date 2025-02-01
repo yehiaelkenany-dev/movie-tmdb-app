@@ -2,10 +2,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:streamr/bloc/home_bloc.dart';
-import 'package:streamr/bloc/home_state.dart';
+import 'package:streamr/bloc/home/home_state.dart';
 import 'package:streamr/constants.dart';
 import 'package:streamr/screens/search_screen.dart';
+import '../bloc/home/home_bloc.dart';
 import 'details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
