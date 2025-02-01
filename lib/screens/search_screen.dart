@@ -1,13 +1,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:streamr/bloc/search/search_bloc.dart';
+import 'package:streamr/bloc/search/search_event.dart';
+import 'package:streamr/bloc/search/search_state.dart';
 import 'package:streamr/constants.dart';
-import 'package:streamr/model/movie_model.dart';
 import 'package:streamr/model/search_category.dart';
 import 'package:streamr/widgets/movie_tile.dart';
 
-import '../api/api.dart';
 import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -21,62 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
   late double _deviceHeight;
   late double _deviceWidth;
   final _searchTextFieldController = TextEditingController();
-  final Api _api = Api(); // Create an instance of the Api class
-  List<Movie> _movies = []; // List to store fetched movies
   String _selectedCategory = SearchCategory.topRated; // Default category
-  String? _backgroundImageUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchMovies(_selectedCategory); // Fetch movies when the screen initializes
-  }
-
-  // Method to fetch movies based on the selected category
-  Future<void> _fetchMovies(String category) async {
-    try {
-      List<Movie> movies;
-      switch (category) {
-        case SearchCategory.topRated:
-          movies = await _api.getTopRatedMovies();
-          break;
-        case SearchCategory.upcoming:
-          movies = await _api.getUpcomingMovies();
-          break;
-        case SearchCategory.trending:
-          movies = await _api.getTrendingMovies();
-          break;
-        default:
-          movies = [];
-          break;
-      }
-      setState(() {
-        _movies = movies; // Update the movies list
-        if (movies.isNotEmpty) {
-          _backgroundImageUrl = movies[0].posterPath!;
-        }
-      });
-    } catch (e) {
-      print('Error fetching movies: $e');
-      // Handle the error (e.g., show a snackbar or dialog)
-    }
-  }
-
-  Future<void> _searchMovies(String query) async {
-    try {
-      // Call the API to search movies
-      List<Movie> movies = await _api.searchMovies(query);
-      setState(() {
-        _movies = movies; // Update the list of movies with search results
-        if (movies.isNotEmpty) {
-          _backgroundImageUrl = movies[0].posterPath!; // Update background
-        }
-      });
-    } catch (e) {
-      print('Error searching movies: $e');
-      // Handle error (e.g., show a Snackbar or dialog)
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,51 +33,56 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
-      body: Container(
-        height: _deviceHeight,
-        width: _deviceWidth,
-        child: Stack(
-          children: [
-            _backgroundWidget(),
-            _foregroundWidgets(),
-          ],
-        ),
+      body: BlocBuilder<SearchBloc, SearchState>(
+        builder: (context, state) {
+          return Container(
+            height: _deviceHeight,
+            width: _deviceWidth,
+            child: Stack(
+              children: [
+                _backgroundWidget(),
+                _foregroundWidgets(context, state),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _backgroundWidget() {
-    return Container(
-      height: _deviceHeight,
-      width: _deviceWidth,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          10.0,
-        ),
-        image: DecorationImage(
-          image: _backgroundImageUrl != null
-              ? NetworkImage(AppConstants.baseUrl + _backgroundImageUrl!)
-              : const NetworkImage(
-                  "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b70af2b5-d696-4bf5-b0d9-4cfbfc5b8bc4/dh26tou-3826978e-3d9e-42d4-a1b2-c8476cab668b.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2I3MGFmMmI1LWQ2OTYtNGJmNS1iMGQ5LTRjZmJmYzViOGJjNFwvZGgyNnRvdS0zODI2OTc4ZS0zZDllLTQyZDQtYTFiMi1jODQ3NmNhYjY2OGIuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.4MBhS_mAVBSdET8n9DkdFtgbAHBRfShEsFYc3wFGP0A",
-                ),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 15.0,
-          sigmaY: 15.0,
-        ),
-        child: Container(
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        String? backgroundImageUrl;
+
+        if (state is SearchLoaded && state.backgroundImage != null) {
+          backgroundImageUrl = AppConstants.baseUrl + state.backgroundImage!;
+        }
+
+        return Container(
+          height: _deviceHeight,
+          width: _deviceWidth,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10.0),
+            image: DecorationImage(
+              image: backgroundImageUrl != null
+                  ? NetworkImage(backgroundImageUrl)
+                  : const NetworkImage(AppConstants.defaultBackgroundURL),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-      ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+            child: Container(
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.2)),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _foregroundWidgets() {
+  Widget _foregroundWidgets(BuildContext context, SearchState state) {
     return Container(
       padding: EdgeInsets.fromLTRB(
           _deviceWidth * 0.025, _deviceHeight * 0.02, _deviceWidth * 0.025, 0),
@@ -164,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Container(
             height: _deviceHeight * 0.83,
             padding: EdgeInsets.symmetric(vertical: _deviceHeight * 0.01),
-            child: _moviesListViewWidget(),
+            child: _moviesListViewWidget(state),
           ),
         ],
       ),
@@ -186,7 +138,7 @@ class _SearchScreenState extends State<SearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _searchFieldWidget(),
-          _categorySelectionWidget(),
+          _categorySelectionWidget(context),
         ],
       ),
     );
@@ -199,9 +151,9 @@ class _SearchScreenState extends State<SearchScreen> {
       height: _deviceHeight * 0.05,
       child: TextField(
         controller: _searchTextFieldController,
-        onSubmitted: (input) {
-          if (input.isNotEmpty) {
-            _searchMovies(input);
+        onSubmitted: (query) {
+          if (query.isNotEmpty) {
+            context.read<SearchBloc>().add(SearchMovies(query));
           }
         },
         style: GoogleFonts.montserrat(
@@ -222,7 +174,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _categorySelectionWidget() {
+  Widget _categorySelectionWidget(BuildContext context) {
     return DropdownButton<String>(
       dropdownColor: Colors.black38,
       value: _selectedCategory, // Use the selected category string
@@ -235,11 +187,14 @@ class _SearchScreenState extends State<SearchScreen> {
         color: Colors.white24,
       ),
       onChanged: (String? newValue) {
-        if (newValue != null) {
+        if (newValue != null && newValue != _selectedCategory) {
           setState(() {
-            _selectedCategory = newValue; // Update the selected category
+            _selectedCategory = newValue; // Update state variable
           });
-          _fetchMovies(newValue); // Fetch movies for the new category
+
+          context
+              .read<SearchBloc>()
+              .add(FetchMoviesByCategory(newValue)); // Fetch new movies
         }
       },
       items: [
@@ -274,10 +229,15 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _moviesListViewWidget() {
-    if (_movies.isNotEmpty) {
+  Widget _moviesListViewWidget(SearchState state) {
+    if (state is SearchLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is SearchLoaded) {
+      if (state.movies.isEmpty) {
+        return const Center(child: Text("No movies available"));
+      }
       return ListView.builder(
-        itemCount: _movies.length,
+        itemCount: state.movies.length,
         itemBuilder: (context, index) {
           return Padding(
             padding: EdgeInsets.symmetric(
@@ -286,24 +246,24 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             child: GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _backgroundImageUrl = AppConstants.baseUrl +
-                        _movies[index].posterPath!; // Update the background
-                  });
+                  if (state.movies.isNotEmpty) {
+                    context.read<SearchBloc>().add(UpdateBackgroundImage(
+                        AppConstants.baseUrl +
+                            state.movies[index].posterPath!));
+                  } else {
+                    // Handle the case when movies are not available
+                  }
                 },
                 child: MovieTile(
                     height: _deviceHeight * 0.20,
                     width: _deviceWidth * 0.85,
-                    movie: _movies[index])),
+                    movie: state.movies[index])),
           );
         },
       );
-    } else {
-      return const Center(
-        child: CircularProgressIndicator(
-          backgroundColor: Colors.white,
-        ),
-      );
+    } else if (state is SearchError) {
+      return Center(child: Text(state.message));
     }
+    return Container();
   }
 }
