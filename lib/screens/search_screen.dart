@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/bloc/search/search_bloc.dart';
 import 'package:streamr/bloc/search/search_event.dart';
@@ -63,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
           height: _deviceHeight,
           width: _deviceWidth,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(10.0).r,
             image: DecorationImage(
               image: backgroundImageUrl != null
                   ? NetworkImage(backgroundImageUrl)

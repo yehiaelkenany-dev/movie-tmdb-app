@@ -4,6 +4,8 @@ import 'package:streamr/constants.dart';
 import 'package:streamr/model/movie_model.dart';
 import 'package:http/http.dart' as http;
 
+import '../model/cast_model.dart';
+
 class Api {
   Future<List<Movie>> getUpcomingMovies() async {
     final response = await http.get(
@@ -60,5 +62,39 @@ class Api {
     } else {
       throw Exception('Failed to search movies');
     }
+  }
+
+  Future<List<CastMember>> fetchMovieCast(int movieId) async {
+    final String url =
+        "https://api.themoviedb.org/3/movie/$movieId/credits?api_key=${AppConstants.apiKey}";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return CreditsResponse.fromJson(data).cast;
+    } else {
+      throw Exception("Failed to load movie credits");
+    }
+  }
+
+  Future<String?> getMovieTrailer(int movieId) async {
+    const apiKey = AppConstants.apiKey;
+    final url = Uri.parse(
+        'https://api.themoviedb.org/3/movie/$movieId/videos?api_key=$apiKey');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<dynamic> results = data['results'];
+
+      if (results.isNotEmpty) {
+        final video = results.firstWhere(
+            (v) => v['site'] == 'YouTube' && v['type'] == 'Trailer',
+            orElse: () => null);
+        return video != null ? video['key'] : null;
+      }
+    }
+    return null; // No video found
   }
 }
