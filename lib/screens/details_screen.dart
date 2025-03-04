@@ -1,8 +1,9 @@
-import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:streamr/constants.dart';
+import 'package:streamr/bloc/cubits/details/details_cubit.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class DetailsScreen extends StatefulWidget {
@@ -25,157 +26,200 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
-  String? _videoKey;
-  bool _isLoading = true;
-  YoutubePlayerController? _youtubePlayerController;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchMovieTrailer(widget.movieId).then((key) {
-      if (key != null) {
-        _videoKey = key;
-        _youtubePlayerController = YoutubePlayerController(
-          initialVideoId: _videoKey!,
-          flags: const YoutubePlayerFlags(
-            autoPlay: false,
-            mute: false,
-          ),
-        );
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _youtubePlayerController?.dispose();
-    super.dispose();
-  }
-
-  Future<String?> fetchMovieTrailer(int movieId) async {
-    const apiKey = AppConstants.apiKey;
-    final url = Uri.parse(
-        'https://api.themoviedb.org/3/movie/$movieId/videos?api_key=$apiKey');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<dynamic> results = data['results'];
-      if (results.isNotEmpty) {
-        final video = results.firstWhere(
-            (v) => v['site'] == 'YouTube' && v['type'] == 'Trailer',
-            orElse: () => null);
-        return video != null ? video['key'] : null;
-      }
-    }
-    return null; // No video found
-  }
-
+  bool isSelected = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black12,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Icon(
-            Icons.arrow_back_rounded,
-            color: Colors.white,
+    return SafeArea(
+      child: BlocProvider<DetailsCubit>(
+        create: (context) => DetailsCubit()..fetchMovieDetails(widget.movieId),
+        child: Scaffold(
+          backgroundColor: Colors.black12,
+          extendBodyBehindAppBar: false,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            leading: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Poster Image Section
-            Stack(
-              children: [
-                Container(
-                  height: 350,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(
-                          AppConstants.baseUrl + widget.posterPath),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Positioned.fill(
+          body: BlocBuilder<DetailsCubit, DetailsState>(
+            builder: (context, state) {
+              if (state is DetailsLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is DetailsError) {
+                return Center(
+                    child: Text(state.message,
+                        style: const TextStyle(color: Colors.white)));
+              } else if (state is DetailsLoaded) {
+                return SingleChildScrollView(
                   child: Container(
-                    color: Colors.black.withOpacity(0.3),
-                  ),
-                ),
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  child: Text(
-                    widget.title,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.amber,
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.sizeOf(context).height,
                     ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Overview Section
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                widget.overview,
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-
-            // Trailer Section
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Watch Trailer',
-                style: GoogleFonts.montserrat(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                ),
-              ),
-            ),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _videoKey != null
-                    ? AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: YoutubePlayer(
-                          controller: _youtubePlayerController!,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: Colors.amber,
-                          progressColors: const ProgressBarColors(
-                            playedColor: Colors.amber,
-                            handleColor: Colors.amberAccent,
+                    margin: REdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        state.videoKey != null
+                            ? SizedBox(
+                                height: 200.h,
+                                width: double.infinity,
+                                child: AspectRatio(
+                                  aspectRatio: 16 / 9,
+                                  child: YoutubePlayer(
+                                    controller: YoutubePlayerController(
+                                      initialVideoId: state.videoKey!,
+                                      flags: const YoutubePlayerFlags(
+                                        autoPlay: false,
+                                        mute: false,
+                                      ),
+                                    ),
+                                    showVideoProgressIndicator: true,
+                                    progressIndicatorColor: Colors.amber,
+                                    progressColors: const ProgressBarColors(
+                                      playedColor: Colors.amber,
+                                      handleColor: Colors.amberAccent,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Padding(
+                                padding: REdgeInsets.all(16.0),
+                                child: const Text(
+                                  'No trailer available for this movie.',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.title,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amberAccent,
+                              ),
+                            ),
+                            Container(
+                                height: 30.h,
+                                width: 40.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.white24,
+                                  borderRadius: BorderRadius.circular(20.r),
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isSelected = !isSelected;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isSelected
+                                        ? CupertinoIcons.heart_fill
+                                        : CupertinoIcons.heart,
+                                    color:
+                                        isSelected ? Colors.red : Colors.black,
+                                  ),
+                                ))
+                          ],
+                        ),
+                        SizedBox(
+                          height: 5.h,
+                        ),
+                        // Overview Section
+                        Text(
+                          widget.overview,
+                          textAlign: TextAlign.justify,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12.sp,
+                            color: Colors.grey,
                           ),
                         ),
-                      )
-                    : const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          'No trailer available for this movie.',
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(
+                          height: 10.h,
                         ),
-                      ),
-          ],
+                        Text(
+                          "Top Cast",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 18.sp, color: Colors.white),
+                        ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        SizedBox(
+                          height: 140.h, // Set height to fit avatars and text
+                          child: state.cast.isNotEmpty
+                              ? ListView.builder(
+                                  scrollDirection:
+                                      Axis.horizontal, // Horizontal scrolling
+                                  itemCount: state.cast.length,
+                                  itemBuilder: (context, index) {
+                                    final actor = state.cast[index];
+
+                                    return Padding(
+                                      padding: REdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Column(
+                                        children: [
+                                          ClipOval(
+                                            child: actor.profilePath != null
+                                                ? Image.network(
+                                                    "https://image.tmdb.org/t/p/w500${actor.profilePath}",
+                                                    height: 75.h,
+                                                    width: 75.w,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Image.asset(
+                                                    "assets/images/avatar.png",
+                                                    height: 75.h,
+                                                    width: 75.w,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                          SizedBox(height: 5.h),
+                                          SizedBox(
+                                            width: 70.w, // Limit text width
+                                            child: Text(
+                                              actor.name,
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 10.sp,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Center(
+                                  child: Text(
+                                    "No cast available",
+                                    style: GoogleFonts.montserrat(
+                                        color: Colors.white),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return Container();
+            },
+          ),
         ),
       ),
     );

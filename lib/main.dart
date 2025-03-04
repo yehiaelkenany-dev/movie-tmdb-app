@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:streamr/bloc/search/search_bloc.dart';
 import 'package:streamr/model/search_category.dart';
 
@@ -10,7 +11,8 @@ import 'bloc/home/home_bloc.dart';
 import 'bloc/home/home_event.dart';
 import 'bloc/search/search_event.dart';
 
-void main() {
+void main() async {
+  await ScreenUtil.ensureScreenSize();
   runApp(
     MultiBlocProvider(
       providers: [
@@ -36,9 +38,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+    return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: HomeScreen(),
+        );
+      },
     );
   }
 }

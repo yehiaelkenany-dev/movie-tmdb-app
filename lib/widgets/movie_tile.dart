@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/constants.dart';
 import 'package:streamr/model/movie_model.dart';
@@ -23,43 +24,29 @@ class MovieTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(flex: 3, child: _moviePosterWidget(movie.posterPath)),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(flex: 7, child: _movieInfoWidget()),
         ],
       ),
     );
   }
 
-  // Widget _moviePosterWidget(String _imageUrl) {
-  //   final String fullImageUrl = AppConstants.baseUrl + _imageUrl;
-  //   return Container(
-  //     height: height,
-  //     width: width * 0.33,
-  //     decoration: BoxDecoration(
-  //       image: DecorationImage(
-  //         image: NetworkImage(fullImageUrl),
-  //         fit: BoxFit.cover,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _moviePosterWidget(String? _imageUrl) {
     final String? fullImageUrl =
         _imageUrl != null ? AppConstants.baseUrl + _imageUrl : null;
     return fullImageUrl != null
         ? ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8).r,
             child: Image.network(
               fullImageUrl,
-              height: height,
-              width: width * 0.33,
+              height: 150.h,
+              width: 250.w,
               fit: BoxFit.cover,
             ),
           )
         : Container(
-            height: height,
-            width: width * 0.33,
+            height: 150.h,
+            width: 250.w,
             color: Colors.grey[800],
             child: const Center(
               child: Icon(Icons.broken_image, color: Colors.white),
@@ -69,8 +56,8 @@ class MovieTile extends StatelessWidget {
 
   Widget _movieInfoWidget() {
     return Container(
-      height: height,
-      width: width * 0.66,
+      height: 150.h,
+      width: 300.w,
       child: Column(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -82,15 +69,16 @@ class MovieTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: width * 0.56,
+                width: 180.w,
                 child: Tooltip(
                   message: movie.title!,
                   child: Text(
                     movie.title!,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                     style: GoogleFonts.montserrat(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -100,30 +88,30 @@ class MovieTile extends StatelessWidget {
                 movie.voteAverage.toString(),
                 style: GoogleFonts.montserrat(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 15.sp,
                 ),
               ),
             ],
           ),
           Container(
-            padding: EdgeInsets.fromLTRB(0, height * 0.02, 0, 0),
+            padding: EdgeInsets.fromLTRB(0, 5.h, 0, 0),
             child: Text(
               "${movie.originalLanguage!.toUpperCase()}  | R:  ${movie.adult}  | ${movie.releaseDate}",
               style: GoogleFonts.montserrat(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: 12.sp,
               ),
             ),
           ),
           Container(
-            padding: EdgeInsets.fromLTRB(0, height * 0.07, 0, 0),
+            padding: EdgeInsets.fromLTRB(0, 8.h, 0, 0),
             child: Text(
               movie.overview!,
-              maxLines: 9,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
                 color: Colors.white70,
-                fontSize: 10,
+                fontSize: 10.sp,
               ),
             ),
           ),
