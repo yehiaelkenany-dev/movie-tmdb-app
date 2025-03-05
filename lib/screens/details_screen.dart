@@ -105,12 +105,16 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              widget.title,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amberAccent,
+                            Expanded(
+                              child: Text(
+                                widget.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amberAccent,
+                                ),
                               ),
                             ),
                             BlocBuilder<FavoritesCubit, List<Movie>>(
