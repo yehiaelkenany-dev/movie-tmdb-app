@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/bloc/home/home_state.dart';
 import 'package:streamr/constants.dart';
+import 'package:streamr/screens/favorites_screen.dart';
 import 'package:streamr/screens/search_screen.dart';
 import '../bloc/home/home_bloc.dart';
 import 'details_screen.dart';
@@ -24,7 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black12,
         foregroundColor: Colors.white,
-        leading: IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoritesScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.favorite)),
         title: Image.asset(
           "assets/images/logo.png",
           fit: BoxFit.cover,

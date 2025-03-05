@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/bloc/cubits/details/details_cubit.dart';
+import 'package:streamr/model/movie_model.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+import '../bloc/cubits/favorites/favorites_cubit.dart';
 
 class DetailsScreen extends StatefulWidget {
   final int movieId;
@@ -26,9 +29,10 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
-  bool isSelected = false;
   @override
   Widget build(BuildContext context) {
+    final favoritesCubit = context.read<FavoritesCubit>();
+
     return SafeArea(
       child: BlocProvider<DetailsCubit>(
         create: (context) => DetailsCubit()..fetchMovieDetails(widget.movieId),
@@ -109,27 +113,41 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                 color: Colors.amberAccent,
                               ),
                             ),
-                            Container(
-                                height: 30.h,
-                                width: 40.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.white24,
-                                  borderRadius: BorderRadius.circular(20.r),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      isSelected = !isSelected;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    isSelected
-                                        ? CupertinoIcons.heart_fill
-                                        : CupertinoIcons.heart,
-                                    color:
-                                        isSelected ? Colors.red : Colors.black,
+                            BlocBuilder<FavoritesCubit, List<Movie>>(
+                              builder: (context, favorites) {
+                                final isFavorite =
+                                    favoritesCubit.isFavorite(widget.movieId);
+                                return Container(
+                                  height: 30.h,
+                                  width: 40.w,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white24,
+                                    borderRadius: BorderRadius.circular(20.r),
                                   ),
-                                ))
+                                  child: IconButton(
+                                    onPressed: () {
+                                      final movie = Movie(
+                                        id: widget.movieId,
+                                        title: widget.title,
+                                        overview: widget.overview,
+                                        posterPath: widget.posterPath,
+                                        backdropPath: widget.backDropPath,
+                                        voteAverage: widget.voteAverage,
+                                      );
+                                      favoritesCubit.toggleFavorite(movie);
+                                    },
+                                    icon: Icon(
+                                      isFavorite
+                                          ? CupertinoIcons.heart_fill
+                                          : CupertinoIcons.heart,
+                                      color: isFavorite
+                                          ? Colors.red
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
                           ],
                         ),
                         SizedBox(
