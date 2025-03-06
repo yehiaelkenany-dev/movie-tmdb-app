@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/constants.dart';
 import 'package:streamr/model/movie_model.dart';
+import 'package:streamr/screens/details_screen.dart';
 
 class MovieTile extends StatelessWidget {
   final double height;
@@ -25,7 +27,7 @@ class MovieTile extends StatelessWidget {
         children: [
           Expanded(flex: 3, child: _moviePosterWidget(movie.posterPath)),
           SizedBox(width: 8.w),
-          Expanded(flex: 7, child: _movieInfoWidget()),
+          Expanded(flex: 7, child: _movieInfoWidget(context)),
         ],
       ),
     );
@@ -54,7 +56,7 @@ class MovieTile extends StatelessWidget {
           );
   }
 
-  Widget _movieInfoWidget() {
+  Widget _movieInfoWidget(BuildContext context) {
     return Container(
       height: 150.h,
       width: 300.w,
@@ -95,12 +97,37 @@ class MovieTile extends StatelessWidget {
           ),
           Container(
             padding: EdgeInsets.fromLTRB(0, 5.h, 0, 0),
-            child: Text(
-              "${movie.originalLanguage!.toUpperCase()}  | R:  ${movie.adult}  | ${movie.releaseDate}",
-              style: GoogleFonts.montserrat(
-                color: Colors.white,
-                fontSize: 12.sp,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  "${movie.originalLanguage!.toUpperCase()}  | R:  ${movie.adult}  | ${movie.releaseDate}",
+                  style: GoogleFonts.montserrat(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsScreen(
+                          movieId: movie.id!,
+                          title: movie.title!,
+                          backDropPath: movie.backdropPath!,
+                          overview: movie.overview!,
+                          posterPath: movie.posterPath!,
+                          voteAverage: movie.voteAverage!,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.arrow_right_circle_fill,
+                    color: Colors.white70,
+                  ),
+                )
+              ],
             ),
           ),
           Container(
