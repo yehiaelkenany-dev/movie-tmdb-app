@@ -9,6 +9,7 @@ import 'package:streamr/screens/favorites_screen.dart';
 import 'package:streamr/screens/search_screen.dart';
 import '../bloc/home/home_bloc.dart';
 import 'details_screen.dart';
+import 'error_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,19 +57,22 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Padding(
           padding: REdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Upcoming Movies',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 20.sp,
-                    color: Colors.white,
-                  )),
-              SizedBox(
-                height: 10.h,
+              Text(
+                'Upcoming Movies',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20.sp,
+                  color: Colors.white,
+                ),
               ),
+              // SizedBox(
+              //   height: MediaQuery.of(context).size.height * 0.01,
+              // ),
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoading) {
@@ -83,41 +87,80 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Column(
                           children: [
                             Container(
-                              width: double.infinity,
+                              width: MediaQuery.sizeOf(context).width,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8).r,
                               ),
                               child: InkWell(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DetailsScreen(
-                                        title: movie.title!,
-                                        backDropPath: AppConstants.baseUrl +
-                                            movie.backdropPath!,
-                                        overview: movie.overview!,
-                                        posterPath: AppConstants.baseUrl +
-                                            movie.posterPath!,
-                                        voteAverage: movie.voteAverage!,
-                                        movieId: movie.id!,
+                                  try {
+                                    if (movie.id == null ||
+                                        movie.title == null) {
+                                      throw Exception("Invalid movie data");
+                                    }
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetailsScreen(
+                                          title: movie.title ?? "Unknown Title",
+                                          backDropPath: (movie.backdropPath !=
+                                                      null &&
+                                                  movie
+                                                      .backdropPath!.isNotEmpty)
+                                              ? AppConstants.baseUrl +
+                                                  movie.backdropPath!
+                                              : "assets/images/error-image.png", // Fallback error image
+                                          overview: movie.overview ??
+                                              "No overview available.",
+                                          posterPath: (movie.posterPath !=
+                                                      null &&
+                                                  movie.posterPath!.isNotEmpty)
+                                              ? AppConstants.baseUrl +
+                                                  movie.posterPath!
+                                              : "assets/images/error-image.png",
+                                          voteAverage: movie.voteAverage ?? 0.0,
+                                          movieId: movie.id!,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  } catch (e) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ErrorScreen(
+                                            message: "Something went wrong"),
+                                      ),
+                                    );
+                                  }
                                 },
-                                child: Image.network(
-                                  AppConstants.baseUrl + movie.backdropPath!,
-                                ),
+                                child: movie.backdropPath != null &&
+                                        movie.backdropPath!.isNotEmpty
+                                    ? Image.network(
+                                        AppConstants.baseUrl +
+                                            movie.backdropPath!,
+                                        height:
+                                            MediaQuery.sizeOf(context).height *
+                                                0.25,
+                                      )
+                                    : Image.asset(
+                                        "assets/images/broken-image.png",
+                                        fit: BoxFit.contain,
+                                        height:
+                                            MediaQuery.sizeOf(context).height *
+                                                0.25,
+                                        color: Colors.white,
+                                      ),
                               ),
                             ),
-                            Padding(
-                              padding: REdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(
-                                movie.title!,
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontSize: 12.sp,
-                                ),
+                            Text(
+                              movie.title!,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontSize: 12.sp,
                               ),
                             ),
                           ],
@@ -126,15 +169,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       options: CarouselOptions(
                           autoPlay: true,
                           enlargeCenterPage: true,
-                          aspectRatio: 1.4,
+                          aspectRatio: MediaQuery.of(context).size.width > 600
+                              ? 2.8
+                              : 1.4,
                           autoPlayInterval: const Duration(seconds: 5),
                           scrollPhysics: const BouncingScrollPhysics(),
                           autoPlayCurve: Curves.fastOutSlowIn),
                     );
                   } else if (state is HomeError) {
                     return Center(
-                      child: Text(state.message,
-                          style: const TextStyle(color: Colors.red)),
+                      child: Text(
+                        state.message,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     );
                   } else {
                     return const SizedBox.shrink();
@@ -147,11 +194,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 20.sp, color: Colors.white),
               ),
               SizedBox(
-                height: 10.h,
+                height: MediaQuery.of(context).size.height * 0.01,
               ),
               SizedBox(
-                height: 300.h,
-                width: double.infinity,
+                height: MediaQuery.sizeOf(context).height * 0.4,
+                width: MediaQuery.sizeOf(context).width,
                 child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: BlocBuilder<HomeBloc, HomeState>(
@@ -189,8 +236,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 children: [
                                   Container(
-                                    width: 150.w,
-                                    height: 220.h,
+                                    width: MediaQuery.sizeOf(context).width *
+                                        0.35, // 30% of screen width
+                                    height:
+                                        MediaQuery.sizeOf(context).height * 0.3,
                                     margin:
                                         REdgeInsets.symmetric(horizontal: 10),
                                     decoration: BoxDecoration(
@@ -202,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Image.network(
                                         AppConstants.baseUrl +
                                             movie.backdropPath!,
-                                        height: 120.h,
+                                        height: 100.h,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
                                       ),
@@ -212,13 +261,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     padding:
                                         REdgeInsets.symmetric(vertical: 8.0),
                                     child: SizedBox(
-                                      width: 150.w,
+                                      width: 120.w,
                                       child: Text(
                                         movie.title!,
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.montserrat(
-                                            color: Colors.white),
-                                        maxLines: 5,
+                                            color: Colors.white,
+                                            fontSize: 12.sp),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ),
@@ -245,8 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 20.sp, color: Colors.white),
               ),
               SizedBox(
-                height: 300.h,
-                width: double.infinity,
+                height: MediaQuery.sizeOf(context).height * 0.4,
+                width: MediaQuery.sizeOf(context).width,
                 child: Container(
                   margin: REdgeInsets.symmetric(vertical: 10),
                   child: BlocBuilder<HomeBloc, HomeState>(
@@ -284,20 +335,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 children: [
                                   Container(
-                                    width: 150.w,
-                                    height: 220.h,
+                                    width: MediaQuery.sizeOf(context).width *
+                                        0.35, // 30% of screen width
+                                    height: MediaQuery.sizeOf(context).height *
+                                        0.30, // 30% of screen width
                                     margin:
                                         REdgeInsets.symmetric(horizontal: 10),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15).r,
+                                      borderRadius: BorderRadius.circular(15),
                                       color: Colors.white,
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(15).r,
+                                      borderRadius: BorderRadius.circular(15),
                                       child: Image.network(
                                         AppConstants.baseUrl +
                                             movie.backdropPath!,
-                                        height: 120,
+                                        height: 100.h,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
                                       ),
@@ -312,9 +365,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Text(
                                         movie.title!,
                                         textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.montserrat(
                                             color: Colors.white),
-                                        maxLines: 5,
+                                        maxLines: 1,
                                       ),
                                     ),
                                   ),
@@ -325,8 +379,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       } else if (state is HomeError) {
                         return Center(
-                          child: Text(state.message,
-                              style: const TextStyle(color: Colors.red)),
+                          child: Text(
+                            state.message,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         );
                       } else {
                         return const SizedBox.shrink();

@@ -4,8 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/bloc/cubits/details/details_cubit.dart';
+import 'package:streamr/bloc/cubits/favorites/favorites_state.dart';
 import 'package:streamr/model/movie_model.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../bloc/cubits/favorites/favorites_cubit.dart';
 
@@ -29,29 +30,48 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
+  late YoutubePlayerController _youtubePlayerController;
+
   @override
   Widget build(BuildContext context) {
     final favoritesCubit = context.read<FavoritesCubit>();
 
-    return SafeArea(
-      child: BlocProvider<DetailsCubit>(
-        create: (context) => DetailsCubit()..fetchMovieDetails(widget.movieId),
-        child: Scaffold(
-          backgroundColor: Colors.black12,
-          extendBodyBehindAppBar: false,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            leading: InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-              ),
+    return BlocProvider<DetailsCubit>(
+      create: (context) => DetailsCubit()..fetchMovieDetails(widget.movieId),
+      child: Scaffold(
+        backgroundColor: Colors.black12,
+        extendBodyBehindAppBar: false,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
             ),
           ),
-          body: BlocBuilder<DetailsCubit, DetailsState>(
+        ),
+        body: SafeArea(
+          child: BlocConsumer<DetailsCubit, DetailsState>(
+            listener: (context, state) {
+              if (state is DetailsLoaded && state.videoKey != null) {
+                // Initialize controller only when we have the video key
+                _youtubePlayerController = YoutubePlayerController.fromVideoId(
+                  videoId: state.videoKey!,
+                  params: const YoutubePlayerParams(
+                    showControls: true,
+                    mute: false,
+                    showFullscreenButton: true,
+                    loop: false,
+                    strictRelatedVideos: true,
+                    enableJavaScript: true,
+                    playsInline: false,
+                  ),
+                );
+              }
+            },
             builder: (context, state) {
               if (state is DetailsLoading) {
                 return const Center(child: CircularProgressIndicator());
@@ -61,6 +81,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         style: const TextStyle(color: Colors.white)));
               } else if (state is DetailsLoaded) {
                 return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: Container(
                     constraints: BoxConstraints(
                       minHeight: MediaQuery.sizeOf(context).height,
@@ -69,36 +90,24 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        state.videoKey != null
-                            ? SizedBox(
-                                height: 200.h,
-                                width: double.infinity,
-                                child: AspectRatio(
-                                  aspectRatio: 16 / 9,
-                                  child: YoutubePlayer(
-                                    controller: YoutubePlayerController(
-                                      initialVideoId: state.videoKey!,
-                                      flags: const YoutubePlayerFlags(
-                                        autoPlay: false,
-                                        mute: false,
-                                      ),
-                                    ),
-                                    showVideoProgressIndicator: true,
-                                    progressIndicatorColor: Colors.amber,
-                                    progressColors: const ProgressBarColors(
-                                      playedColor: Colors.amber,
-                                      handleColor: Colors.amberAccent,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : Padding(
-                                padding: REdgeInsets.all(16.0),
-                                child: const Text(
-                                  'No trailer available for this movie.',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
+                        if (state.videoKey != null)
+                          SizedBox(
+                            height: 200.h,
+                            width: double.infinity,
+                            child: YoutubePlayer(
+                              controller: _youtubePlayerController,
+                              aspectRatio: 16 / 9,
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: REdgeInsets.all(16.0),
+                            child: const Text(
+                              'No trailer available for this movie.',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        // ... rest of your widgets ...
                         SizedBox(
                           height: 10.h,
                         ),
@@ -117,10 +126,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                 ),
                               ),
                             ),
-                            BlocBuilder<FavoritesCubit, List<Movie>>(
-                              builder: (context, favorites) {
-                                final isFavorite =
-                                    favoritesCubit.isFavorite(widget.movieId);
+                            BlocBuilder<FavoritesCubit, FavoritesState>(
+                              builder: (context, state) {
+                                bool isFavorite = false;
+                                if (state is FavoritesLoaded) {
+                                  isFavorite = state.favorites.any(
+                                      (movie) => movie.id == widget.movieId);
+                                }
                                 return Container(
                                   height: 30.h,
                                   width: 40.w,
@@ -224,8 +236,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                         ],
                                       ),
                                     );
-                                  },
-                                )
+                                  })
                               : Center(
                                   child: Text(
                                     "No cast available",
@@ -233,7 +244,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                         color: Colors.white),
                                   ),
                                 ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -245,5 +256,11 @@ class _DetailsScreenState extends State<DetailsScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _youtubePlayerController.close();
+    super.dispose();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:streamr/bloc/cubits/favorites/favorites_cubit.dart';
 import 'package:streamr/bloc/search/search_bloc.dart';
 import 'package:streamr/model/search_category.dart';
@@ -15,6 +16,9 @@ import 'bloc/search/search_event.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ScreenUtil.ensureScreenSize();
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear(); // ✅ Clears the old data before running the app
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -44,8 +48,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(360, 690),
-      minTextAdapt: true,
+      ensureScreenSize: true,
+      designSize: MediaQuery.of(context).size.width > 600
+          ? const Size(600, 1024) // Tablet size
+          : const Size(360, 690), // Mobile size
+      minTextAdapt: false,
       splitScreenMode: true,
       builder: (context, child) {
         return const MaterialApp(

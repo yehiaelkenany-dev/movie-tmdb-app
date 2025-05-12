@@ -43,7 +43,8 @@ class Movie {
       mediaType: map['media_type'],
       adult: map['adult'],
       originalLanguage: map['original_language'],
-      genreIds: map['genre_ids'].cast<int>(),
+      genreIds:
+          (map['genreIds'] != null) ? List<int>.from(map['genreIds']) : [],
       popularity: map['popularity'],
       releaseDate: map['release_date'],
       video: map['video'],
