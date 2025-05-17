@@ -1,9 +1,22 @@
+buildscript {
+    dependencies {
+        classpath 'com.google.gms:google-services:4.4.2' // ✅ Firebase plugin
+        classpath 'com.android.tools.build:gradle:8.10.0'
+
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
 }
+
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty('android')) {
@@ -15,6 +28,7 @@ subprojects {
         }
     }
 }
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -26,4 +40,3 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-
