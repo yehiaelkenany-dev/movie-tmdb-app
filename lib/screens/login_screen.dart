@@ -173,7 +173,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Forget Password?',
                         style: GoogleFonts.montserrat(
-                          color: Colors.white,
+                          color: const Color.fromRGBO(255, 0, 110, 1.0),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -309,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SignupScreen(),
+                            builder: (context) => const SignUpScreen(),
                           ),
                         );
                       },

@@ -12,6 +12,7 @@ class ForgetPasswordScreen extends StatefulWidget {
 
 class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   final _emailController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -33,6 +34,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     _deviceHeight = MediaQuery.sizeOf(context).height;
     _deviceWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
+      backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -55,86 +57,93 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
         height: _deviceHeight * 0.97,
         width: _deviceWidth * 0.98,
         margin: const EdgeInsets.all(15),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: _deviceHeight * 0.125,
-            ),
-            Image.asset(
-              "assets/images/reset-password.png",
-            ),
-            Text(
-              "Reset Password",
-              style: GoogleFonts.acme(
-                fontSize: 35,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: _deviceHeight * 0.125,
               ),
-            ),
-            Text(
-              "Enter your Email and we will send you a password reset link",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.acme(
-                fontSize: 20,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+              Image.asset(
+                "assets/images/reset-password.png",
               ),
-            ),
-            SizedBox(
-              height: _deviceHeight * 0.025,
-            ),
-            TextFormField(
-              style: GoogleFonts.acme(
-                color: Colors.white,
-              ),
-              cursorColor: Colors.white,
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                fillColor: const Color.fromRGBO(30, 29, 37, 1.0),
-                filled: true,
-                hintText: 'Email',
-                hintStyle: GoogleFonts.acme(color: Colors.white),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
-                prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedMailAccount01,
-                    color: Colors.white54),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an email';
-                }
-                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
-                  return 'Please enter a valid email address';
-                }
-                return null;
-              },
-            ),
-            SizedBox(
-              height: _deviceHeight * 0.025,
-            ),
-            MaterialButton(
-              minWidth: 200,
-              height: 50,
-              color: Colors.purpleAccent,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              onPressed: passwordReset,
-              child: Text(
+              Text(
                 "Reset Password",
-                style: GoogleFonts.acme(
-                  fontSize: 22,
+                style: GoogleFonts.montserrat(
+                  fontSize: 25,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: Colors.white,
                 ),
               ),
-            )
-          ],
+              Text(
+                "Enter your Email and we will send you a password reset link",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(
+                height: _deviceHeight * 0.025,
+              ),
+              TextFormField(
+                style: GoogleFonts.montserrat(
+                  color: Colors.white,
+                ),
+                cursorColor: Colors.white,
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  fillColor: const Color.fromRGBO(30, 29, 37, 1.0),
+                  filled: true,
+                  hintText: 'Email',
+                  hintStyle: GoogleFonts.montserrat(color: Colors.white),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                  prefixIcon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedMailAccount01,
+                      color: Colors.purpleAccent),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an email';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
+                    return 'Please enter a valid email address';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(
+                height: _deviceHeight * 0.025,
+              ),
+              MaterialButton(
+                minWidth: 200,
+                height: 50,
+                color: Colors.purpleAccent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    passwordReset();
+                  }
+                },
+                child: Text(
+                  "Reset Password",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

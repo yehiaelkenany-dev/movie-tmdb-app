@@ -57,19 +57,19 @@ class Movie {
     return {
       'title': title,
       'id': id,
-      'originalTitle': originalTitle,
-      'originalLanguage': originalLanguage,
-      'mediaType': mediaType,
+      'original_title': originalTitle,
+      'original_language': originalLanguage,
+      'media_type': mediaType,
       'adult': adult,
       'genreIds': genreIds,
       'popularity': popularity,
-      'releaseDate': releaseDate,
+      'release_date': releaseDate,
       'video': video,
-      'voteCount': voteCount,
-      'backdropPath': backdropPath,
+      'vote_count': voteCount,
+      'backdrop_path': backdropPath,
       'overview': overview,
-      'posterPath': posterPath,
-      'voteAverage': voteAverage
+      'poster_path': posterPath,
+      'vote_average': voteAverage
     };
   }
 }

@@ -1,29 +1,47 @@
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../model/movie_model.dart';
 import 'favorites_state.dart';
 
 class FavoritesCubit extends Cubit<FavoritesState> {
-  FavoritesCubit() : super(FavoritesInitial()) {
+  final FirebaseFirestore firestore;
+  final FirebaseAuth auth;
+
+  FavoritesCubit({
+    required this.firestore,
+    required this.auth,
+  }) : super(FavoritesInitial()) {
     loadFavorites();
   }
 
   Future<void> loadFavorites() async {
+    emit(FavoritesInitial());
     try {
+      final user = auth.currentUser;
+      if (user != null) {
+        final doc = await firestore.collection('favorites').doc(user.uid).get();
+
+        if (doc.exists && doc.data()?['movies'] != null) {
+          final List<dynamic> jsonList = doc.data()!['movies'];
+          final List<Movie> favoriteMovies =
+          jsonList.map((json) => Movie.fromMap(json)).toList();
+
+          emit(FavoritesLoaded(favoriteMovies));
+          return;
+        }
+      }
+
+      // Fallback to SharedPreferences if user not logged in or no Firestore data
       final prefs = await SharedPreferences.getInstance();
       final favoritesString = prefs.getString('favorites');
-      print("Raw Favorites Data: $favoritesString");
-
       if (favoritesString != null) {
         final List<dynamic> jsonList = json.decode(favoritesString);
-        print("Parsed JSON: $jsonList");
-
         final List<Movie> favoriteMovies =
-            jsonList.map((json) => Movie.fromMap(json)).toList();
-        print("Loaded Movies: $favoriteMovies");
-
+        jsonList.map((json) => Movie.fromMap(json)).toList();
         emit(FavoritesLoaded(favoriteMovies));
       } else {
         emit(const FavoritesLoaded([]));
@@ -37,9 +55,8 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   Future<void> toggleFavorite(Movie movie) async {
     if (state is! FavoritesLoaded) return;
 
-    final prefs = await SharedPreferences.getInstance();
     final currentFavorites =
-        List<Movie>.from((state as FavoritesLoaded).favorites);
+    List<Movie>.from((state as FavoritesLoaded).favorites);
 
     if (currentFavorites.any((m) => m.id == movie.id)) {
       currentFavorites.removeWhere((m) => m.id == movie.id);
@@ -47,8 +64,18 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       currentFavorites.add(movie);
     }
 
-    final List<Map<String, dynamic>> jsonList =
-        currentFavorites.map((m) => m.toMap()).toList();
+    final jsonList = currentFavorites.map((m) => m.toMap()).toList();
+
+    // Save to Firestore if user is logged in
+    final user = auth.currentUser;
+    if (user != null) {
+      await firestore.collection('favorites').doc(user.uid).set({
+        'movies': jsonList,
+      });
+    }
+
+    // Also save to SharedPreferences for offline fallback
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString('favorites', json.encode(jsonList));
 
     emit(FavoritesLoaded(currentFavorites));
@@ -60,5 +87,17 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       return currentState.favorites.any((movie) => movie.id == movieId);
     }
     return false;
+  }
+
+  Future<void> clearFavorites() async {
+    final user = auth.currentUser;
+    if (user != null) {
+      await firestore.collection('favorites').doc(user.uid).delete();
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('favorites');
+
+    emit(const FavoritesLoaded([]));
   }
 }

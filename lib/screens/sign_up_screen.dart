@@ -9,14 +9,14 @@ import 'package:streamr/screens/home_screen.dart';
 import '../database_services/user_service.dart';
 import 'login_screen.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   Map<String, bool> _validationResults = {};
   final AuthService _authService = AuthService();
   bool _isVisible = false;
