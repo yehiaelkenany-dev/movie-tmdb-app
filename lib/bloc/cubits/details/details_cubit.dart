@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:streamr/api/api.dart';
 import 'package:streamr/model/cast_model.dart';
 
+import '../../../model/movie_model.dart';
+
 part 'details_state.dart';
 
 class DetailsCubit extends Cubit<DetailsState> {
@@ -16,8 +18,11 @@ class DetailsCubit extends Cubit<DetailsState> {
     try {
       final cast = await _api.fetchMovieCast(movieId);
       final videoKey = await _fetchMovieTrailer(movieId);
+      final movie = await _api.fetchMovieById(movieId);
 
-      emit(DetailsLoaded(cast: cast, videoKey: videoKey));
+      emit(
+        DetailsLoaded(cast: cast, videoKey: videoKey, movie: movie),
+      );
     } catch (e) {
       emit(DetailsError(message: "Failed to load movie details."));
     }

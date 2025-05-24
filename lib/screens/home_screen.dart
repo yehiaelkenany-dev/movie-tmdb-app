@@ -8,9 +8,7 @@ import 'package:streamr/bloc/home/home_state.dart';
 import 'package:streamr/components/home_drawer.dart';
 import 'package:streamr/constants.dart';
 import 'package:streamr/screens/favorites_screen.dart';
-import 'package:streamr/screens/search_screen.dart';
 import '../bloc/home/home_bloc.dart';
-import 'details_screen.dart';
 import 'error_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -50,12 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SearchScreen(),
-                    ),
-                  );
+                  Navigator.pushReplacementNamed(context, '/search');
+                  // Navigator.pushReplacement(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const SearchScreen(),
+                  //   ),
+                  // );
                 },
                 icon: const Icon(Icons.search_rounded)),
             IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
@@ -119,31 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                         movie.title == null) {
                                       throw Exception("Invalid movie data");
                                     }
-
-                                    Navigator.push(
+                                    Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => DetailsScreen(
-                                          title: movie.title ?? "Unknown Title",
-                                          backDropPath: (movie.backdropPath !=
-                                              null &&
-                                              movie
-                                                  .backdropPath!.isNotEmpty)
-                                              ? AppConstants.baseUrl +
-                                              movie.backdropPath!
-                                              : "assets/images/error-image.png", // Fallback error image
-                                          overview: movie.overview ??
-                                              "No overview available.",
-                                          posterPath: (movie.posterPath !=
-                                              null &&
-                                              movie.posterPath!.isNotEmpty)
-                                              ? AppConstants.baseUrl +
-                                              movie.posterPath!
-                                              : "assets/images/error-image.png",
-                                          voteAverage: movie.voteAverage ?? 0.0,
-                                          movieId: movie.id!,
-                                        ),
-                                      ),
+                                      '/details',
+                                      arguments: movie,
                                     );
                                   } catch (e) {
                                     Navigator.push(
@@ -239,20 +217,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           final movie = state.trendingMovies[index];
                           return InkWell(
                             onTap: () {
-                              Navigator.push(
+                              Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailsScreen(
-                                    movieId: movie.id!,
-                                    title: movie.title!,
-                                    voteAverage: movie.voteAverage!,
-                                    posterPath: AppConstants.baseUrl +
-                                        movie.posterPath!,
-                                    overview: movie.overview!,
-                                    backDropPath: AppConstants.baseUrl +
-                                        movie.backdropPath!,
-                                  ),
-                                ),
+                                '/details',
+                                arguments: movie,
                               );
                             },
                             child: Column(
@@ -338,20 +306,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           final movie = state.topRatedMovies[index];
                           return InkWell(
                             onTap: () {
-                              Navigator.push(
+                              Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailsScreen(
-                                    movieId: movie.id!,
-                                    title: movie.title!,
-                                    voteAverage: movie.voteAverage!,
-                                    posterPath: AppConstants.baseUrl +
-                                        movie.posterPath!,
-                                    overview: movie.overview!,
-                                    backDropPath: AppConstants.baseUrl +
-                                        movie.backdropPath!,
-                                  ),
-                                ),
+                                '/details',
+                                arguments: movie,  // Pass your Movie object directly here
                               );
                             },
                             child: Column(
@@ -418,9 +376,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-// void _handleMenuButtonPressed() {
-  //   // _advancedDrawerController.value = AdvancedDrawerValue.visible();
-  //   _advancedDrawerController.showDrawer();
-  // }
 }

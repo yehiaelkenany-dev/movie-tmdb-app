@@ -13,4 +13,7 @@ class AppConstants {
       "https://api.themoviedb.org/3/trending/movie/day?api_key=";
   static const topRatedMoviesApiUrl =
       "https://api.themoviedb.org/3/movie/top_rated?api_key=";
+
+  static const movieDetailsUrl = "https://api.themoviedb.org/3/movie";
+
 }

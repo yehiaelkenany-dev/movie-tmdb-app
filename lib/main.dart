@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:streamr/auth/auth_gate.dart';
 import 'package:streamr/bloc/cubits/favorites/favorites_cubit.dart';
-import 'package:streamr/bloc/cubits/route/route_cubit.dart';
 import 'package:streamr/bloc/search/search_bloc.dart';
 import 'package:streamr/model/search_category.dart';
 import 'package:streamr/navigation/route_generator.dart';
@@ -30,68 +30,59 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: RouteCubit().loadInitialRoute(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          final initialRoute = snapshot.data!;
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => RouteCubit()..loadInitialRoute(),
-              ),
-              BlocProvider(
-                create: (_) => DrawerNavigationCubit(),
-              ),
-              BlocProvider(
-                create: (_) => HomeBloc()
-                  ..add(
-                    FetchMoviesEvent(),
-                  ),
-              ),
-              BlocProvider(
-                create: (context) => SearchBloc(Api())
-                  ..add(FetchMoviesByCategory(SearchCategory.topRated)),
-              ),
-              BlocProvider(
-                create: (context) => FavoritesCubit(
-                  auth: FirebaseAuth.instance,
-                  firestore: FirebaseFirestore.instance,
-                ),
-              ),
-            ],
-            child: ScreenUtilInit(
-              ensureScreenSize: true,
-              designSize: MediaQuery.of(context).size.width > 600
-                  ? const Size(600, 1024) // Tablet size
-                  : const Size(360, 690),
-              // Mobile size
-              minTextAdapt: false,
-              splitScreenMode: true,
-              builder: (context, child) {
-                return MaterialApp(
-                  theme: ThemeData(
-                    textTheme: GoogleFonts.montserratTextTheme(),
-                  ),
-                  debugShowCheckedModeBanner: false,
-                  initialRoute: initialRoute,
-                  onGenerateRoute: RouteGenerator.generateRoute,
-                );
-              },
+    return MultiBlocProvider(
+      providers: [
+        // BlocProvider(
+        //   create: (_) => RouteCubit()..loadInitialRoute(),
+        // ),
+        BlocProvider(
+          create: (_) => DrawerNavigationCubit(),
+        ),
+        BlocProvider(
+          create: (_) =>
+          HomeBloc()
+            ..add(
+              FetchMoviesEvent(),
             ),
+        ),
+        BlocProvider(
+          create: (context) =>
+          SearchBloc(Api())
+            ..add(FetchMoviesByCategory(SearchCategory.topRated)),
+        ),
+        BlocProvider(
+          create: (context) =>
+              FavoritesCubit(
+                auth: FirebaseAuth.instance,
+                firestore: FirebaseFirestore.instance,
+              ),
+        ),
+      ],
+      child: ScreenUtilInit(
+        ensureScreenSize: true,
+        designSize: MediaQuery
+            .of(context)
+            .size
+            .width > 600
+            ? const Size(600, 1024) // Tablet size
+            : const Size(360, 690),
+        // Mobile size
+        minTextAdapt: false,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return MaterialApp(
+            theme: ThemeData(
+              textTheme: GoogleFonts.montserratTextTheme(),
+            ),
+            debugShowCheckedModeBanner: false,
+            onGenerateRoute: RouteGenerator.generateRoute,
+            home: const AuthGate(),
           );
-        }
-        return const MaterialApp(
-          home: Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 }

@@ -53,6 +53,11 @@ class Movie {
     );
   }
 
+  factory Movie.fromJson(Map<String, dynamic> json) {
+    return Movie.fromMap(json);
+  }
+
+
   Map<String, dynamic> toMap() {
     return {
       'title': title,

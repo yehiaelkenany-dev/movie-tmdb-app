@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/constants.dart';
 import 'package:streamr/model/movie_model.dart';
-import 'package:streamr/screens/details_screen.dart';
 
 class MovieTile extends StatelessWidget {
   final double height;
@@ -108,19 +107,11 @@ class MovieTile extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailsScreen(
-                          movieId: movie.id!,
-                          title: movie.title!,
-                          backDropPath: movie.backdropPath!,
-                          overview: movie.overview!,
-                          posterPath: movie.posterPath!,
-                          voteAverage: movie.voteAverage!,
-                        ),
-                      ),
+                      '/details?id=${movie.id}',
                     );
+
                   },
                   icon: const Icon(
                     CupertinoIcons.arrow_right_circle_fill,

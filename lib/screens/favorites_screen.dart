@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:streamr/bloc/cubits/favorites/favorites_state.dart';
-import 'package:streamr/screens/details_screen.dart';
 import '../bloc/cubits/favorites/favorites_cubit.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -50,18 +49,19 @@ class FavoritesScreen extends StatelessWidget {
                 final movie = favoriteMovies[index];
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailsScreen(
-                            movieId: movie.id!,
-                            title: movie.title!,
-                            backDropPath: movie.backdropPath!,
-                            overview: movie.overview!,
-                            posterPath: movie.posterPath!,
-                            voteAverage: movie.voteAverage!),
-                      ),
-                    );
+                    Navigator.pushNamed(context, '/details');
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => DetailsScreen(
+                    //         movieId: movie.id!,
+                    //         title: movie.title!,
+                    //         backDropPath: movie.backdropPath!,
+                    //         overview: movie.overview!,
+                    //         posterPath: movie.posterPath!,
+                    //         voteAverage: movie.voteAverage!),
+                    //   ),
+                    // );
                   },
                   child: GridTile(
                     footer: GridTileBar(

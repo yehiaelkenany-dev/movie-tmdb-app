@@ -20,7 +20,7 @@ class ErrorScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/images/error-image.png", height: 200),
+            Image.asset("assets/images/broken-image.png", height: 200),
             SizedBox(height: 20.h),
             Text(
               message,

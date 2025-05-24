@@ -12,7 +12,10 @@ import '../bloc/cubits/favorites/favorites_cubit.dart';
 
 class DetailsScreen extends StatefulWidget {
   final int movieId;
-  final String title, backDropPath, overview, posterPath;
+  final String title;
+  final String backDropPath;
+  final String overview;
+  final String posterPath;
   final double voteAverage;
 
   const DetailsScreen({
@@ -55,11 +58,12 @@ class _DetailsScreenState extends State<DetailsScreen> {
         ),
         body: SafeArea(
           child: BlocConsumer<DetailsCubit, DetailsState>(
-            listener: (context, state) {
-              if (state is DetailsLoaded && state.videoKey != null) {
+            listener: (context, detailsState) {
+              if (detailsState is DetailsLoaded && detailsState.videoKey != null) {
+
                 // Initialize controller only when we have the video key
                 _youtubePlayerController = YoutubePlayerController.fromVideoId(
-                  videoId: state.videoKey!,
+                  videoId: detailsState.videoKey!,
                   params: const YoutubePlayerParams(
                     showControls: true,
                     mute: false,
@@ -72,14 +76,15 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 );
               }
             },
-            builder: (context, state) {
-              if (state is DetailsLoading) {
+            builder: (context, detailsState) {
+              if (detailsState is DetailsLoading) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (state is DetailsError) {
+              } else if (detailsState is DetailsError) {
                 return Center(
-                    child: Text(state.message,
+                    child: Text(detailsState.message,
                         style: const TextStyle(color: Colors.white)));
-              } else if (state is DetailsLoaded) {
+              } else if (detailsState is DetailsLoaded) {
+                final movie = detailsState.movie;
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Container(
@@ -90,7 +95,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (state.videoKey != null)
+                        if (detailsState.videoKey != null)
                           SizedBox(
                             height: 200.h,
                             width: double.infinity,
@@ -116,7 +121,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                widget.title,
+                                movie.title!,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.montserrat(
@@ -127,10 +132,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                               ),
                             ),
                             BlocBuilder<FavoritesCubit, FavoritesState>(
-                              builder: (context, state) {
+                              builder: (context, favState) {
                                 bool isFavorite = false;
-                                if (state is FavoritesLoaded) {
-                                  isFavorite = state.favorites.any(
+                                if (favState is FavoritesLoaded) {
+                                  isFavorite = favState.favorites.any(
                                       (movie) => movie.id == widget.movieId);
                                 }
                                 return Container(
@@ -171,7 +176,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         ),
                         // Overview Section
                         Text(
-                          widget.overview,
+                          detailsState.movie.overview!,
                           textAlign: TextAlign.justify,
                           style: GoogleFonts.montserrat(
                             fontSize: 12.sp,
@@ -191,13 +196,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         ),
                         SizedBox(
                           height: 140.h, // Set height to fit avatars and text
-                          child: state.cast.isNotEmpty
+                          child: detailsState.cast.isNotEmpty
                               ? ListView.builder(
                                   scrollDirection:
                                       Axis.horizontal, // Horizontal scrolling
-                                  itemCount: state.cast.length,
+                                  itemCount: detailsState.cast.length,
                                   itemBuilder: (context, index) {
-                                    final actor = state.cast[index];
+                                    final actor = detailsState.cast[index];
 
                                     return Padding(
                                       padding: REdgeInsets.symmetric(

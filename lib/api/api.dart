@@ -97,4 +97,14 @@ class Api {
     }
     return null; // No video found
   }
+
+  Future<Movie> fetchMovieById(int id) async {
+    final response = await http.get(Uri.parse('${AppConstants.movieDetailsUrl}/$id?api_key=${AppConstants.apiKey}'));
+    if (response.statusCode == 200) {
+      return Movie.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Failed to load movie");
+    }
+  }
+
 }
